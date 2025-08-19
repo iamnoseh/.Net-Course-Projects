@@ -8,112 +8,65 @@ namespace Infrastructure.Services;
 
 public class ProductService(DataContext context) : IProductService
 {
-    public Response<string> CreateProduct(Product product)
+    public async Task<Response<string>> CreateProduct(Product product)
     {
-        try
+        await using var connect = context.GetConnection();
+        const string query = @"Insert into products(name, price, createdAt) 
+        values (@Name,@Price,@createdAt)";
+        var effect = await connect.ExecuteAsync(query, new
         {
-            using var command = context.GetConnection();
-            const string query = @"Insert into Products(name,price,createdat) values(@name, @price, @createdat)";
-            var res = command.Execute(query, new
-            {
-                name = product.Name,
-                price = product.Price,
-                createdat = DateTime.Now
-            });
-            return res > 0 
-                ? new Response<string>(HttpStatusCode.Created,"Product created successfully") 
-                : new Response<string>(HttpStatusCode.BadRequest,"Error creating product");
-        }
-        catch (Exception e)
-        {
-            return new Response<string>(HttpStatusCode.InternalServerError,"Internal server error");
-        }
+            Name = product.Name,
+            Price = product.Price,
+            CreatedAt = DateTime.UtcNow
+        });
+        return effect > 0 
+            ? new Response<string>(HttpStatusCode.Created,"Product created successfully")
+            : new Response<string>(HttpStatusCode.BadRequest,"Something went wrong");
     }
 
-    public Response<string> UpdateProduct(Product product)
+    public async Task<Response<string>> UpdateProduct(Product product)
     {
-        try
+        await using var connect = context.GetConnection();
+        const string query = @"Update products set name=@Name, price=@Price, createdAt=@CreatedAt where id=@Id";
+        var effect = await connect.ExecuteAsync(query, new
         {
-            using var command = context.GetConnection();
-            const string query = @"Update products set name=@name, price=@price, createdat=@createdat where id=@id";
-            var res = command.Execute(query, new
-            {
-                id = product.Id,
-                name = product.Name,
-                price = product.Price,
-                createdat = product.CreatedAt
-            });
-            return res > 0
-                ? new Response<string>(HttpStatusCode.OK,"Product updated successfully")
-                : new Response<string>(HttpStatusCode.BadRequest,"Something went wrong");
-        }
-        catch (Exception e)
-        {
-            return new Response<string>(HttpStatusCode.InternalServerError,"Internal server error");
-        }
+            Name = product.Name,
+            Price = product.Price,
+            CreatedAt = DateTime.UtcNow,
+            Id = product.Id
+        });
+        return effect > 0
+            ? new Response<string>(HttpStatusCode.OK,"Product updated successfully")
+            : new Response<string>(HttpStatusCode.BadRequest,"Something went wrong");
     }
 
-    public Response<string> DeleteProduct(int id)
+    public async Task<Response<string>> DeleteProduct(int id)
     {
-        try
-        {
-            using var command = context.GetConnection();
-            const string query = @"Delete products where id=@id";
-            var res = command.Execute(query, new
-            {
-                id = id
-            });
-            return res > 0 
-                ? new Response<string>(HttpStatusCode.OK,"Product deleted successfully")
-                : new Response<string>(HttpStatusCode.BadRequest,"Something went wrong");
-
-        }
-        catch (Exception e)
-        {
-            return new Response<string>(HttpStatusCode.InternalServerError,"Internal server error");
-        }
+        await using var connect = context.GetConnection();
+        const string query = @"Delete products where id=@Id";
+        var effect = await connect.ExecuteAsync(query, new { Id = id });
+        return effect > 0
+            ? new Response<string>(HttpStatusCode.OK,"Product deleted Successfully")
+            : new Response<string>(HttpStatusCode.BadRequest,"Something went wrong");
     }
 
-    public Response<List<Product>> GetAllProducts()
+    public async Task<Response<List<Product>>> GetAllProducts()
     {
-        try
-        {
-            using var command = context.GetConnection();
-            const string query = @"Select * from Products";
-            var res = command.Query<Product>(query).ToList();
-            if (res.Any())
-            {
-                return new Response<List<Product>>(res);
-            }
-            return new Response<List<Product>>(HttpStatusCode.NotFound,"Products not found");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            return   new Response<List<Product>>(HttpStatusCode.InternalServerError,"Internal server error");
-        }
+        await using var connect = context.GetConnection();
+        const string query = @"Select * from products";
+        var effect = await connect.QueryAsync<Product>(query);
+        return effect.Any() 
+            ? new Response<List<Product>>(effect.ToList()) 
+            : new Response<List<Product>>(HttpStatusCode.NotFound,"No products found");
     }
 
-    public Response<Product> GetProductById(int id)
+    public async Task<Response<Product>> GetProduct(int id)
     {
-        try
-        {
-            using var command = context.GetConnection();
-            const string query = @"Select * from Products where id=@Id";
-            var res = command.QueryFirst<Product>(query, new
-            {
-                Id = id
-            });
-            if (res != null)
-            {
-                return new Response<Product>(res);
-            }
-            return new Response<Product>(HttpStatusCode.NotFound,"Product not found");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            return new Response<Product>(HttpStatusCode.InternalServerError, "Internal server error");
-        }
+        await using var connect = context.GetConnection();
+        const string query = @"Select * from products where id=@Id";
+        var effect = await connect.QueryFirstOrDefaultAsync<Product>(query, new { Id = id });
+        return effect != null
+            ? new Response<Product>(effect) 
+            : new Response<Product>(HttpStatusCode.NotFound,"Product not found");
     }
 }

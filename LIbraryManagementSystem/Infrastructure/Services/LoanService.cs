@@ -51,13 +51,15 @@ public class LoanService(DataContext context) : ILoanService
             using var connect = context.GetConnection();
 
             const string update =
-                @"update loans set returndate=@returnDate, isreturned=@isReturned, updatedat=@updatedAt where id=@id;";
+                @"update loans set bookid = @book_Id,memberid= @member_Id,returndate=@returnDate, isreturned=@isReturned, updatedat=@updatedAt where id=@Id;";
             var effect = connect.Execute(update, new
             {
+                member_Id = request.MemberId,
+                book_Id = request.BookId,
                 returnDate = request.ReturnDate,
                 isReturned = request.IsReturned,
                 updatedAt = DateTime.UtcNow,
-                id = request.Id
+                Id = request.Id
             });
 
             int bookId = connect.QueryFirst<int>("select bookid from loans where id=@id;", new { id = request.Id });
@@ -204,7 +206,7 @@ public class LoanService(DataContext context) : ILoanService
         {
             using var connect = context.GetConnection();
             const string query = @"select * from loans where memberid=@memberId;";
-            var res = connect.Query<Loan>(query, new { memberId = memberId }).ToList();
+            var res = connect.Query<Loan>(query, new { memberId }).ToList();
             List<GetLoanDto> dtos = [];
             foreach (var l in res)
             {

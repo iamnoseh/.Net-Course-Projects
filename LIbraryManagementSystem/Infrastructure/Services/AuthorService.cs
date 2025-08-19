@@ -5,15 +5,17 @@ using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Infrastructure.Responses;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services;
 
-public class AuthorService(DataContext context) : IAuthorService
+public class AuthorService(DataContext context,ILogger<AuthorService> loger) : IAuthorService
 {
     public Response<string> CreateAuthor(CreateAuthorDto request)
     {
         try
         {
+            loger.LogInformation("Start creating Author....");
             using var connect = context.GetConnection();
             const string query = @"Insert into authors(fullname,birthyear,country,createdat,updatedat)
                                    values (@fullName,@birthYear,@country,@createdAt,@updatedAt);";

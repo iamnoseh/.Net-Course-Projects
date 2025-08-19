@@ -9,33 +9,23 @@ namespace WebApp.Controllers;
 public class ProductsController(IProductService service): ControllerBase
 {
     [HttpPost]
-    public Response<string> Create(Product product)
-    {
-        return service.CreateProduct(product);
-    }
-
-    [HttpPut]
-    public Response<string> Update(Product product)
-    {
-        return service.UpdateProduct(product);
-    }
-
+    public async Task<Response<string>> Create(Product product)
+        => await service.CreateProduct(product);
+    
+    [HttpPatch]
+    public async Task<Response<string>> Update(Product product)
+        => await service.UpdateProduct(product);
+    
     [HttpDelete]
-    public Response<string> Delete(int id)
-    {
-        return service.DeleteProduct(id);
-    }
+    public async Task<Response<string>> Delete(int id)
+        => await service.DeleteProduct(id);
 
     [HttpGet]
-    public Response<List<Product>> GetAllProducts()
-    {
-        return service.GetAllProducts();
-    }
-
+    public async Task<Response<List<Product>>> GetProducts()
+        => await service.GetAllProducts();
     [HttpGet("{id}")]
-    public Response<Product> GetProduct(int id)
-    {
-        return service.GetProductById(id);
-    }
+    public async Task<Response<Product>> GetProduct(int id) 
+        => await service.GetProduct(id);
+
 
 }

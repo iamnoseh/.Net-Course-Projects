@@ -2,7 +2,7 @@
 
 public class Author : BaseEntity
 {
-    public string FullName { get; set; }
+    public required string FullName { get; set; }
     public int BirthYear { get; set; }
-    public string Country { get; set; }
+    public string? Country { get; set; }
 }
