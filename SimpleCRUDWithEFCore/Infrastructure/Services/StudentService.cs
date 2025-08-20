@@ -84,20 +84,15 @@ public class StudentService(DataContext context) : IStudentService
         var students = await context.Students.ToListAsync();
         if(students.Count == 0) { return new Response<List<GetStudentDto>>(HttpStatusCode.NotFound,"No students found"); }
 
-        var dto = new List<GetStudentDto>();
-        foreach (var student in students)
+        var res = students.Select(x => new GetStudentDto()
         {
-            var s = new GetStudentDto()
-            {
-                Id = student.Id,
-                FirstName = student.FirstName,
-                LastName = student.LastName,
-                Email = student.Email,
-                Age = student.Age,
-                Gender = student.Gender,
-            };
-            dto.Add(s);
-        }
-        return new Response<List<GetStudentDto>>(dto);
+            Id = x.Id,
+            FirstName = x.FirstName,
+            LastName = x.LastName,
+            Email = x.Email,
+            Age = x.Age,
+            Gender = x.Gender,
+        }).ToList();
+        return new Response<List<GetStudentDto>>(res);
     }
 }
