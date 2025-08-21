@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Services;
 
-public class CategoryService(DataContext context) : ICategoryService
+public class CategoryService(DataContext context): ICategoryService
 {
     public async Task<Responce<string>> AddCategory(CreateCategoriesDto category)
     {
@@ -21,44 +21,52 @@ public class CategoryService(DataContext context) : ICategoryService
                 UpdateDate = DateTime.UtcNow
             };
             await context.Categories.AddAsync(newCategory);
-            var res = await context.SaveChangesAsync();
+            var res=  await context.SaveChangesAsync();
             return res > 0
-                ? new Responce<string>(HttpStatusCode.Created,"Category created successfully")
-                : new Responce<string>(HttpStatusCode.BadRequest,"Something went wrong");
+                ? new Responce<string>(HttpStatusCode.Created,"Category added successfully")
+                : new Responce<string>(HttpStatusCode.BadRequest,"Category not found");
         }
         catch (Exception e)
         {
-            return new Responce<string>(HttpStatusCode.InternalServerError,"Internal server error");
+            return new Responce<string>(HttpStatusCode.InternalServerError,"Internal Server Error");
         }
     }
 
     public async Task<Responce<string>> UpdateCategory(UpdateCategoriesDto category)
     {
-        var oldCategory = await context.Categories.FirstOrDefaultAsync(x=> x.Id ==  category.Id);
-        if (oldCategory == null) return new Responce<string>(HttpStatusCode.NotFound,"Category not found");
-        oldCategory.Name = category.Name;
-        oldCategory.UpdateDate = DateTime.UtcNow;
-        var res = await context.SaveChangesAsync();
-        return res > 0
-            ?  new Responce<string>(HttpStatusCode.OK,"Category updated successfully")
-            : new Responce<string>(HttpStatusCode.BadRequest,"Something went wrong");
+        try
+        {
+            var categoryToUpdate = await context.Categories.FirstOrDefaultAsync(x=>x.Id==category.Id);
+            if(categoryToUpdate==null){return new Responce<string>(HttpStatusCode.NotFound,"Category not found");}
+            categoryToUpdate.Name = category.Name;
+            categoryToUpdate.UpdateDate=DateTime.UtcNow;
+            var res= await context.SaveChangesAsync();
+            return res > 0
+                ? new Responce<string>(HttpStatusCode.OK,"Category updated successfully")
+                : new Responce<string>(HttpStatusCode.BadRequest,"Category not found");
+        }
+        catch (Exception e)
+        {
+            return new Responce<string>(HttpStatusCode.InternalServerError,"Internal Server Error");
+        }
     }
 
     public async Task<Responce<string>> DeleteCategory(int Id)
     {
         try
         {
-            var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == Id);
-            if (category == null) return new Responce<string>(HttpStatusCode.NotFound,"Category not found");
-            context.Categories.Remove(category);
-            var res = await context.SaveChangesAsync();
-            return res > 0
-                ? new  Responce<string>(HttpStatusCode.OK,"Category deleted successfully")
-                : new Responce<string>(HttpStatusCode.BadRequest,"Something went wrong");
+            var res= await context.Categories.FirstOrDefaultAsync(x=>x.Id==Id);
+            if(res==null){return new Responce<string>(HttpStatusCode.NotFound,"Category not found");}
+            context.Categories.Remove(res);
+            var effect=await context.SaveChangesAsync();
+            return effect > 0
+                ? new Responce<string>(HttpStatusCode.OK,"Category deleted successfully")
+                : new Responce<string>(HttpStatusCode.BadRequest,"Category not found");
+
         }
         catch (Exception e)
         {
-            return new Responce<string>(HttpStatusCode.InternalServerError,"Internal server error");
+            return new Responce<string>(HttpStatusCode.InternalServerError,"Internal Server Error");
         }
     }
 
@@ -66,20 +74,22 @@ public class CategoryService(DataContext context) : ICategoryService
     {
         try
         {
-            var categories = await context.Categories.ToListAsync();
-            if(categories.Count == 0) return new Responce<List<GetCategoriesDto>>(HttpStatusCode.NotFound,"Category not found");
-            var res = categories.Select(x=> new  GetCategoriesDto()
+            var res= await context.Categories.ToListAsync();
+            if(res.Count==0){return new Responce<List<GetCategoriesDto>>(HttpStatusCode.NotFound,"Category not found");}
+
+            var dto = res.Select(c => new GetCategoriesDto()
             {
-                Id = x.Id,
-                Name = x.Name,
-                CreateDate = x.CreateDate,
-                UpdateDate = x.UpdateDate
+                Id = c.Id,
+                Name = c.Name,
+                CreateDate = c.CreateDate,
+                UpdateDate = c.UpdateDate
             }).ToList();
-            return new Responce<List<GetCategoriesDto>>(res);
+            return new Responce<List<GetCategoriesDto>>(dto);
+
         }
         catch (Exception e)
         {
-            return new Responce<List<GetCategoriesDto>>(HttpStatusCode.InternalServerError,"Internal server error");
+            return new Responce<List<GetCategoriesDto>>(HttpStatusCode.InternalServerError,"Internal Server Error");
         }
     }
 
@@ -87,20 +97,21 @@ public class CategoryService(DataContext context) : ICategoryService
     {
         try
         {
-            var category =  await context.Categories.FirstOrDefaultAsync(x => x.Id == Id);
-            if (category == null) return new Responce<GetCategoriesDto>(HttpStatusCode.NotFound,"Category not found");
-            var res = new GetCategoriesDto()
+            var res= await context.Categories.FirstOrDefaultAsync(x=>x.Id==Id);
+            if(res==null){return new Responce<GetCategoriesDto>(HttpStatusCode.NotFound,"Category not found");}
+
+            var dto = new GetCategoriesDto()
             {
-                Id = category.Id,
-                Name = category.Name,
-                CreateDate = category.CreateDate,
-                UpdateDate = category.UpdateDate
+                Id = res.Id,
+                Name = res.Name,
+                CreateDate = res.CreateDate,
+                UpdateDate = res.UpdateDate
             };
-            return new Responce<GetCategoriesDto>(res);
+            return new Responce<GetCategoriesDto>(dto);
         }
         catch (Exception e)
         {
-            return new Responce<GetCategoriesDto>(HttpStatusCode.InternalServerError,"Internal server error");
+            return new Responce<GetCategoriesDto>(HttpStatusCode.InternalServerError,"Internal Server Error");
         }
     }
 }

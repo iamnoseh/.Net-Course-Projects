@@ -2,8 +2,9 @@
 
 namespace Domain.DTOs.OrderDto;
 
-public class GetOrderDto:UpdateOrdesDto
+public class GetOrderDto : UpdateOrdesDto
 {
-    public DateTime CreateDate{get;set;}
-    public DateTime UpdateDate{get;set;}
+    public DateTime CreateDate {get;set;}
+    public DateTime UpdateDate {get;set;}
+    public decimal TotalAmount {get;set;}
 }

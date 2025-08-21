@@ -4,7 +4,7 @@ using Infrastructure.Responces;
 
 namespace Infrastructure.Interfaces;
 
-public interface IProductServices
+public interface IProductService
 {
     Task<Responce<string>> AddProduct(CreateProductDto product);
     Task<Responce<string>> UpdateProduct(UpdateProductDto product);

@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Domain.DTOs.CouriersDto;
 using Domain.DTOs.OrderDto;
+using Domain.DTOs.OrderItems;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
@@ -94,24 +95,38 @@ public class CourierService(DataContext context) : ICourierService
         return new Responce<GetCouriersDto>(dto);
     }
 
-    public async Task<Responce<GetCourierOrders>> GetCourierOrders(int id)
+    public async Task<Responce<List<GetCourierOrders>>> GetCourierOrders(int id)
     {
-        var courier = await context.Couriers.Include(x => x.Orders)
-            .FirstOrDefaultAsync(x => x.Id == id);
-        var dto = new GetCourierOrders
+        try
         {
-            CourierId = courier.Id,
-            CourierName = courier.FirstName + " " + courier.LastName,
-            Orders = courier.Orders.Select(o => new GetOrderDto()
+            var courierItems = context.Couriers.Include(o=>o.Orders).ThenInclude(i=> i.OrderItems).FirstOrDefault(x=> x.Id == id);
+            if (courierItems == null) return new Responce<List<GetCourierOrders>>(HttpStatusCode.NotFound, "Items Not Found");
+             
+            var res = courierItems.Orders.Select(x => new GetCourierOrders()
             {
-                Id = o.Id,
-                OrderDate = o.OrderDate,
-                Status = o.Status,
-                CreateDate = o.CreateDate,
-                UpdateDate = o.UpdateDate,
-            }).ToList(),
-            TotalPrice = courier.Orders.Sum(x => x.TotalAmount),
-        };
-        return new Responce<GetCourierOrders>(dto);
+                CourierId = id,
+                CourierName = x.Courier.FirstName + " " + x.Courier.LastName,
+                Orders = x.Courier.Orders.Select(e => new GetOrder()
+                {
+                    OrderId = e.Id,
+                    TotalPrice = e.OrderItems.Sum(s => s.UnitPrice),
+                    Items = e.OrderItems.Select(i => new GetOrderItemDto()
+                    {
+                        Id = i.Id,
+                        ProductId = i.ProductId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice,
+                        UpdateDate = i.UpdateDate,
+                        CreateDate = i.CreateDate
+                    }).ToList()
+                }).ToList(),
+                TotalPrice = x.Courier.Orders.Sum(x=> new {tolat = x.OrderItems.Sum(e=> e.UnitPrice)}.tolat)
+            }).ToList();
+            return new Responce<List<GetCourierOrders>>(res);
+        }
+        catch (Exception e)
+        {
+            return new Responce<List<GetCourierOrders>>(HttpStatusCode.InternalServerError, "Internal server error!");
+        }
     }
 }

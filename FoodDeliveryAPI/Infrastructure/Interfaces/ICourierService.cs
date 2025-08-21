@@ -10,5 +10,5 @@ public interface ICourierService
     Task<Responce<string>> DeleteCourier(int id);
     Task<Responce<List<GetCouriersDto>>> ListCouriers();
     Task<Responce<GetCouriersDto>> FindCourier(int id);
-    Task<Responce<GetCourierOrders>>  GetCourierOrders(int id);
+    Task<Responce<List<GetCourierOrders>>> GetCourierOrders(int id);
 }

@@ -15,5 +15,5 @@ public class Product:BaseEntity
     public int CategoryId {get;set;}
     public Category Category {get;set;}
     
-    public OrderItem  OrderItem {get;set;}
+    public List<OrderItem>  OrderItem {get;set;}
 }
