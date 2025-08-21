@@ -6,7 +6,7 @@
 // namespace WebApp.Controllers;
 // [ApiController]
 // [Route("api/[controller]")]
-// public class OrderController(IOrderServices service):ControllerBase
+// public class OrderController(IOrderService service):ControllerBase
 // {
 //     [HttpPost]
 //     public async Task<Responce<string>> AddOrder(CreateOrdersDto order)

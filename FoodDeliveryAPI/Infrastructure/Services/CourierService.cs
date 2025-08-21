@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Services;
 
-public class CourierService(DataContext context) : ICourierServices
+public class CourierService(DataContext context) : ICourierService
 {
     public async Task<Responce<string>> AddCourier(CreateCouriersDto courier)
     {

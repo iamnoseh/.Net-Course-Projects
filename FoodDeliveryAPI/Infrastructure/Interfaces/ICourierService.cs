@@ -3,7 +3,7 @@ using Infrastructure.Responces;
 
 namespace Infrastructure.Interfaces;
 
-public interface ICourierServices
+public interface ICourierService
 {
     Task<Responce<string>> AddCourier(CreateCouriersDto courier);
     Task<Responce<string>> UpdateCourier(UpdateCouriersDto courier);

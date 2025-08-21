@@ -4,7 +4,7 @@ using Infrastructure.Responces;
 
 namespace Infrastructure.Interfaces;
 
-public interface ICategoriesServices
+public interface ICategoryService
 {
     Task<Responce<string>> AddCategory(CreateCategoriesDto category);
     Task<Responce<string>> UpdateCategory(UpdateCategoriesDto category);
