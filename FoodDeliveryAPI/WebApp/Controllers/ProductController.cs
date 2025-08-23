@@ -58,17 +58,6 @@ public class ProductController(IProductService service):Controller
         var res = await service.GetProductFilters(filter);
         return Ok(res);
     }
-
-    [HttpGet("test-pagination")]
-    public async Task<IActionResult> TestPagination()
-    {
-        var filter = new ProductFilter
-        {
-            PageNumber = 1,
-            PageSize = 5
-        };
-        var res = await service.GetProductFilters(filter);
-        return Ok(res);
-    }
+    
     
 }
