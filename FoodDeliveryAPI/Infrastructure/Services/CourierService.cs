@@ -3,9 +3,11 @@ using Domain.DTOs.CouriersDto;
 using Domain.DTOs.OrderDto;
 using Domain.DTOs.OrderItems;
 using Domain.Entities;
+using Domain.Filter;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Infrastructure.Responce;
+using Infrastructure.Responces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Services;
@@ -127,6 +129,53 @@ public class CourierService(DataContext context) : ICourierService
         catch (Exception e)
         {
             return new Responce<List<GetCourierOrders>>(HttpStatusCode.InternalServerError, "Internal server error!");
+        }
+    }
+
+    public async Task<PaginationResponse<List<GetCouriersDto>>> GetCouriersPagination(CourierFilter filter)
+    {
+        try
+        {
+            var query =  context.Couriers.AsQueryable();
+            if (!string.IsNullOrEmpty(filter.FirstName))
+            {
+                query = query.Where(x => x.FirstName.ToLower().Contains(filter.FirstName.ToLower()));
+            }
+
+            if (!string.IsNullOrEmpty(filter.LastName))
+            {
+                query = query.Where(x => x.LastName.ToLower().Contains(filter.LastName.ToLower()));
+            }
+
+            if (!string.IsNullOrEmpty(filter.PhoneNumber))
+            {
+                query = query.Where(x=>x.Phone.Contains(filter.PhoneNumber));
+            }
+
+            if (filter.IsAvailable.HasValue)
+            {
+                query = query.Where(x => x.IsAvailable == filter.IsAvailable.Value);
+            }
+            
+            var totalRecords = await query.CountAsync();
+            var skip =  (filter.PageNumber - 1) * filter.PageSize;
+            var couriers = await query.Skip(skip).Take(filter.PageSize).ToListAsync();
+            if(couriers.Count == 0) return new PaginationResponse<List<GetCouriersDto>>(HttpStatusCode.NotFound,"Courier Not Found");
+            var dtos = couriers.Select(x => new GetCouriersDto()
+            {
+                Id = x.Id,
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                Phone = x.Phone,
+                CreateDate = x.CreateDate,
+                UpdateDate = x.UpdateDate,
+            }).ToList();
+            return new PaginationResponse<List<GetCouriersDto>>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
+
+        }
+        catch (Exception e)
+        {
+            return new PaginationResponse<List<GetCouriersDto>>(HttpStatusCode.InternalServerError,"Internal server error!");
         }
     }
 }

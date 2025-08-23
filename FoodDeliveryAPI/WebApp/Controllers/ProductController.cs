@@ -25,7 +25,7 @@ public class ProductController(IProductService service):Controller
     }
 
     [HttpGet("category/{categoryId}")]
-    public async Task<IActionResult> GetCategory(int categoryId)
+    public async Task<IActionResult> GetCategory([FromRoute]int categoryId)
     {
         var res = await service.FindProductsByCategories(categoryId);
         return Ok(res);

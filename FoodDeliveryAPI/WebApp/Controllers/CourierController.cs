@@ -1,4 +1,5 @@
 ﻿using Domain.DTOs.CouriersDto;
+using Domain.Filter;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -48,6 +49,13 @@ public class CourierController(ICourierService service):Controller
     public async Task<IActionResult> DeleteCourier(int id)
     {
         var res = await service.DeleteCourier(id);
+        return Ok(res);
+    }
+
+    [HttpGet("pagination")]
+    public async Task<IActionResult> GetCourierPagination([FromQuery]CourierFilter filter)
+    {
+        var res = await service.GetCouriersPagination(filter);
         return Ok(res);
     }
 }

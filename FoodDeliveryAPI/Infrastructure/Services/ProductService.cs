@@ -166,17 +166,17 @@ public class ProductService(DataContext context):IProductService
             
             if (!string.IsNullOrEmpty(filter.Name))
             {
-                query = query.Where(x => x.Name.Contains(filter.Name));
+                query = query.Where(x => x.Name.ToLower().Contains(filter.Name.ToLower()));
             }
 
             if (!string.IsNullOrEmpty(filter.CategoryName))
             {
-                query = query.Where(x => x.Category.Name.Contains(filter.CategoryName));
+                query = query.Where(x => x.Category.Name.ToLower().Contains(filter.CategoryName.ToLower()));
             }
 
-            if (filter.Price.HasValue)
+            if (filter.MaxPrice.HasValue && filter.MinPrice.HasValue)
             {
-                query = query.Where(x => x.Price >= filter.Price.Value);
+                query = query.Where(x=> x.Price>=filter.MinPrice && x.Price<=filter.MaxPrice); 
             }
 
             if (filter.IsAvailable.HasValue)
@@ -200,7 +200,7 @@ public class ProductService(DataContext context):IProductService
                 UpdateDate = x.UpdateDate
             }).ToList();
             
-            return new PaginationResponse<List<GetProductDto>>(dto, totalRecords, filter.PageNumber, filter.PageSize);
+            return new PaginationResponse<List<GetProductDto>>(dto,totalRecords,filter.PageNumber,filter.PageSize);
         }
         catch (Exception e)
         {
