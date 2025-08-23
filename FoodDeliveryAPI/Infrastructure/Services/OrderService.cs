@@ -4,7 +4,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
-using Infrastructure.Responces;
+using Infrastructure.Responce;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Services;

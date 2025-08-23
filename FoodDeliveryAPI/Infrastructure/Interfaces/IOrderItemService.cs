@@ -1,5 +1,5 @@
 ﻿using Domain.DTOs.OrderItems;
-using Infrastructure.Responces;
+using Infrastructure.Responce;
 
 namespace Infrastructure.Interfaces;
 

@@ -1,4 +1,5 @@
 ﻿using Domain.DTOs.ProductDto;
+using Domain.Filter;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -48,6 +49,25 @@ public class ProductController(IProductService service):Controller
     public async Task<IActionResult> Delete(int id)
     {
         var res= await service.DeleteProduct(id);
+        return Ok(res);
+    }
+
+    [HttpGet("pagination")]
+    public async Task<IActionResult> GetPagination([FromQuery] ProductFilter filter)
+    {
+        var res = await service.GetProductFilters(filter);
+        return Ok(res);
+    }
+
+    [HttpGet("test-pagination")]
+    public async Task<IActionResult> TestPagination()
+    {
+        var filter = new ProductFilter
+        {
+            PageNumber = 1,
+            PageSize = 5
+        };
+        var res = await service.GetProductFilters(filter);
         return Ok(res);
     }
     

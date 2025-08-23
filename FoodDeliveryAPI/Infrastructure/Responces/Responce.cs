@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Infrastructure.Responces;
+namespace Infrastructure.Responce;
 
 public class Responce<T>
 {
@@ -21,4 +21,5 @@ public class Responce<T>
         Message = message;
         Data = default;
     }
+    
 }

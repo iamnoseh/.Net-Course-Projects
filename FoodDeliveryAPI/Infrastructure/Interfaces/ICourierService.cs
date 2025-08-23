@@ -1,5 +1,5 @@
 ﻿using Domain.DTOs.CouriersDto;
-using Infrastructure.Responces;
+using Infrastructure.Responce;
 
 namespace Infrastructure.Interfaces;
 

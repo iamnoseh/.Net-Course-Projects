@@ -1,8 +1,10 @@
 ﻿using System.Net;
 using Domain.DTOs.ProductDto;
 using Domain.Entities;
+using Domain.Filter;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
+using Infrastructure.Responce;
 using Infrastructure.Responces;
 using Microsoft.EntityFrameworkCore;
 
@@ -153,6 +155,56 @@ public class ProductService(DataContext context):IProductService
         catch (Exception e)
         {
             return new  Responce<List<GetProductDto>>(HttpStatusCode.InternalServerError,"Internal server error");
+        }
+    }
+
+    public async Task<PaginationResponse<List<GetProductDto>>> GetProductFilters(ProductFilter filter)
+    {
+        try
+        {
+            var query = context.Products.Include(x => x.Category).AsQueryable();
+            
+            if (!string.IsNullOrEmpty(filter.Name))
+            {
+                query = query.Where(x => x.Name.Contains(filter.Name));
+            }
+
+            if (!string.IsNullOrEmpty(filter.CategoryName))
+            {
+                query = query.Where(x => x.Category.Name.Contains(filter.CategoryName));
+            }
+
+            if (filter.Price.HasValue)
+            {
+                query = query.Where(x => x.Price >= filter.Price.Value);
+            }
+
+            if (filter.IsAvailable.HasValue)
+            {
+                query = query.Where(x => x.IsAvailable == filter.IsAvailable.Value);
+            }
+
+            var totalRecords = await query.CountAsync();
+            var skip = (filter.PageNumber - 1) * filter.PageSize;
+            var products = await query.Skip(skip).Take(filter.PageSize).ToListAsync();
+            
+            var dto = products.Select(x => new GetProductDto()
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Price = x.Price,
+                Description = x.Description,
+                CategoryId = x.CategoryId,
+                IsAvailable = x.IsAvailable,
+                CreateDate = x.CreateDate,
+                UpdateDate = x.UpdateDate
+            }).ToList();
+            
+            return new PaginationResponse<List<GetProductDto>>(dto, totalRecords, filter.PageNumber, filter.PageSize);
+        }
+        catch (Exception e)
+        {
+            return new PaginationResponse<List<GetProductDto>>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Domain.DTOs.CtegoriesDto;
 using Domain.Entities;
-using Infrastructure.Responces;
+using Infrastructure.Responce;
 
 namespace Infrastructure.Interfaces;
 

@@ -1,6 +1,6 @@
 ﻿using Domain.DTOs.OrderDto;
 using Domain.Enums;
-using Infrastructure.Responces;
+using Infrastructure.Responce;
 
 namespace Infrastructure.Interfaces;
 
