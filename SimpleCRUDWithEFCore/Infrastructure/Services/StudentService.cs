@@ -29,7 +29,7 @@ public class StudentService(DataContext context) : IStudentService
                 ? new Response<string>(HttpStatusCode.Created,"Student created successfully")
                 : new Response<string>(HttpStatusCode.BadRequest,"Failed to create student");
         }
-        catch (Exception e)
+        catch 
         {
             throw new Exception("Error creating student");
         }

@@ -6,13 +6,15 @@ using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Infrastructure.Responses;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services;
 
-public class CourseService(DataContext context) : ICourseService
+public class CourseService(DataContext context,ILogger<CourseService> log) : ICourseService
 {
     public async Task<Response<string>> CreateCourse(CreateCourseDto request)
     {
+        log.LogInformation($"Metodi sokhtani kurs ba kor sar kard! {DateTime.Now}");
         var newCourse = new Course()
         {
             Name = request.Name,
@@ -20,6 +22,16 @@ public class CourseService(DataContext context) : ICourseService
         };
         await context.Courses.AddAsync(newCourse);
         var result = await context.SaveChangesAsync();
+        if (result > 0)
+        {
+            log.LogInformation($"Kurs bo muvaffaqiyat sokhta shud! {DateTime.Now}");
+        }
+        else
+        {
+            {
+                log.LogError($"Khatogi dar sokhtani kurs! {DateTime.Now}");
+            }
+        }
         return result > 0
             ? new Response<string>(HttpStatusCode.Created, "Course created successfully")
             : new Response<string>(HttpStatusCode.BadRequest, "Course could not be created");
@@ -28,10 +40,23 @@ public class CourseService(DataContext context) : ICourseService
     public async Task<Response<string>> UpdateCourse(UpdateCourseDto request)
     {
         var course = await context.Courses.FirstOrDefaultAsync(x => x.Id == request.Id);
-        if (course == null) return new Response<string>(HttpStatusCode.NotFound, "Course not found");
+        if (course == null)
+        {
+            log.LogInformation("Course could not be found");
+            return new Response<string>(HttpStatusCode.NotFound, "Course not found");
+        }
+        log.LogInformation($"Kurs bo id-i {request.Id} yofta shud!");
         course.Name = request.Name;
         course.Description = request.Description;
         var result = await context.SaveChangesAsync();
+        if (result > 0)
+        {
+            log.LogInformation("Course updated successfully");
+        }
+        else
+        {
+            log.LogError("Course could not be updated");
+        }
         return result > 0
             ? new Response<string>(HttpStatusCode.OK, "Course updated successfully")
             : new Response<string>(HttpStatusCode.BadRequest, "Course could not be updated");
@@ -40,9 +65,22 @@ public class CourseService(DataContext context) : ICourseService
     public async Task<Response<string>> DeleteCourse(int id)
     {
         var course = await context.Courses.FirstOrDefaultAsync(x => x.Id == id);
-        if (course == null) return new Response<string>(HttpStatusCode.NotFound, "Course not found");
+        if (course == null)
+        {
+            log.LogError("Course not found!");
+            return new Response<string>(HttpStatusCode.NotFound, "Course not found");
+        }
+        log.LogInformation($"Kurs bo id-i {id} baroi nest kardan yofta shud!");
         context.Courses.Remove(course);
         var result = await context.SaveChangesAsync();
+        if (result > 0)
+        {
+            log.LogInformation("Course deleted successfully");
+        }
+        else
+        {
+            log.LogError("Course could not be deleted");
+        }
         return result > 0
             ? new Response<string>(HttpStatusCode.OK, "Course deleted successfully")
             : new Response<string>(HttpStatusCode.BadRequest, "Course could not be deleted");
@@ -51,7 +89,12 @@ public class CourseService(DataContext context) : ICourseService
     public async Task<Response<List<GetCourseDto>>> GetAllCourses()
     {
         var courses = await context.Courses.ToListAsync();
-        if (courses.Count == 0) return new Response<List<GetCourseDto>>(HttpStatusCode.NotFound, "Courses not found");
+        if (courses.Count == 0)
+        {
+            log.LogError("Course could not be found");
+            return new Response<List<GetCourseDto>>(HttpStatusCode.NotFound, "Courses not found");
+        }
+        log.LogInformation($"{courses.Count}  cours yofta shud!");
         var res = courses.Select(c => new GetCourseDto()
         {
             Id = c.Id,
@@ -64,7 +107,12 @@ public class CourseService(DataContext context) : ICourseService
     public async Task<Response<GetCourseDto>> GetCourseById(int id)
     {
         var course = await context.Courses.FirstOrDefaultAsync(x => x.Id == id);
-        if (course == null) return new Response<GetCourseDto>(HttpStatusCode.NotFound, "Course not found");
+        if (course == null)
+        {
+            log.LogError("course not found");
+            return new Response<GetCourseDto>(HttpStatusCode.NotFound, "Course not found");
+        }
+        log.LogInformation("Course found");
         var res = new GetCourseDto()
         {
             Id = course.Id,
