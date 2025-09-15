@@ -31,7 +31,7 @@ public class AuthService(UserManager<User> userManager, SignInManager<User> sign
             }
 
             var roles = await userManager.GetRolesAsync(user);
-            var token = GenerateJwtToken(user.Id, user.Name, user.Email!, roles);
+            var token = GenerateJwtToken(user.Id, user.Name, user.Email!, roles,user.Phone);
             return new Responce<string>(token);
         }
         catch (Exception e)
@@ -47,9 +47,8 @@ public class AuthService(UserManager<User> userManager, SignInManager<User> sign
             var exists = await userManager.FindByEmailAsync(registerDto.Email);
             if (exists != null)
             {
-                return new Responce<string>(HttpStatusCode.Conflict, "Email already registered");
+                return new Responce<string>(HttpStatusCode.Conflict, "Phone already registered");
             }
-
             var user = new User
             {
                 UserName = registerDto.Email,
@@ -62,13 +61,11 @@ public class AuthService(UserManager<User> userManager, SignInManager<User> sign
                 UpdateDate = DateTime.UtcNow
             };
 
-            var createRes = await userManager.CreateAsync(user, registerDto.Password);
+            var createRes = await userManager.CreateAsync(user,registerDto.Password);
             if (!createRes.Succeeded)
             {
-                var message = string.Join("; ", createRes.Errors.Select(e => e.Description));
-                return new Responce<string>(HttpStatusCode.BadRequest, message);
+                return new Responce<string>(HttpStatusCode.BadRequest,"Your password is incorrect");
             }
-            
             return new Responce<string>(HttpStatusCode.OK, "User registration successful");
         }
         catch (Exception e)
@@ -77,7 +74,7 @@ public class AuthService(UserManager<User> userManager, SignInManager<User> sign
         }
     }
 
-    private string GenerateJwtToken(int userId, string name, string email, System.Collections.Generic.IList<string> roles)
+    private string GenerateJwtToken(int userId, string name, string email, System.Collections.Generic.IList<string> roles,string phone)
     {
         var jwtSection = configuration.GetSection("JWT");
         var issuer = jwtSection["Issuer"];
@@ -90,10 +87,11 @@ public class AuthService(UserManager<User> userManager, SignInManager<User> sign
             new(JwtRegisteredClaimNames.NameId, userId.ToString()),
             new(JwtRegisteredClaimNames.Name, name),
             new(JwtRegisteredClaimNames.Email, email),
+            new (JwtRegisteredClaimNames.PhoneNumber,phone)
         };
         foreach (var r in roles)
         {
-            claims.Add(new Claim(ClaimTypes.Role, r));
+            claims.Add(new Claim("role", r));
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret!));

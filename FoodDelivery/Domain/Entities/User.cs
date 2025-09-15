@@ -8,15 +8,11 @@ public class User : IdentityUser<int>
     [Required]
     [StringLength(50, MinimumLength = 3)]
     public required string Name { get; set; }
-
     [Phone]
-    public string? Phone { get; set; }
-
+    public string? Phone{ get; set; }
     [Required]
     public required string Address { get; set; }
-
     public DateTime RegistrationDate { get; set; }
-    
     public DateTime CreateDate { get; set; }
     public DateTime UpdateDate { get; set; }
 

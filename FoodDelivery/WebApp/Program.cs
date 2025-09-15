@@ -26,7 +26,7 @@ builder.Services.AddScoped<DataContext>();
 builder.Services
     .AddIdentityCore<User>(opt =>
     {
-        opt.Password.RequiredLength = 6;
+        opt.Password.RequiredLength = 4;
         opt.Password.RequireNonAlphanumeric = false;
         opt.Password.RequireUppercase = false;
         opt.Password.RequireLowercase = false;
@@ -110,8 +110,8 @@ using (var scope = app.Services.CreateScope())
     {
         var userManager = services.GetRequiredService<UserManager<User>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
-        var cfg = services.GetRequiredService<IConfiguration>();
-        await IdentitySeeder.SeedAdminAsync(userManager, roleManager, cfg);
+        await IdentitySeeder.SeedAdminAsync(userManager, roleManager);
+        await IdentitySeeder.SeedRole(roleManager);
     }
     catch (Exception ex)
     {
