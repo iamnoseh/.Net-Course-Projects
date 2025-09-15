@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Domain.Enums;
 
 namespace Domain.DTOs.UserDtos;
 
@@ -15,5 +14,4 @@ public class CreateUserDto
     public required string Password { get; set; }
     public required string Address { get; set; }
     public DateTime RegistrationDate { get; set; }
-    public UserRole Role { get; set; }
 }

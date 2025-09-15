@@ -1,6 +1,4 @@
-﻿using Domain.Enums;
-
-namespace Domain.DTOs.UserDtos;
+﻿namespace Domain.DTOs.UserDtos;
 
 public class UpdateUserDto
 {
@@ -11,5 +9,4 @@ public class UpdateUserDto
     public string Password { get; set; }
     public string Address { get; set; }
     public DateTime RegistrationDate { get; set; }
-    public UserRole Role { get; set; }
 }

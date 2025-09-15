@@ -1,6 +1,7 @@
 ﻿using Domain.DTOs.ProductDto;
 using Domain.Filter;
 using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApp.Controllers;
@@ -8,6 +9,7 @@ namespace WebApp.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ProductController(IProductService service):Controller
 {
     [HttpGet]

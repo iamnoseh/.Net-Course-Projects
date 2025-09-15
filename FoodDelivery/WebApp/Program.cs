@@ -2,11 +2,13 @@ using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
-using Microsoft.AspNetCore.Authorization;
+using Domain.Entities;
+using Infrastructure.Data.Seeder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +19,23 @@ builder.Host.UseSerilog((ctx, lc) => lc
     .Enrich.FromLogContext()
     .MinimumLevel.Debug());
 
-// DbContext
+// DbContext + Identity
 builder.Services.AddDbContext<DataContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<DataContext>();
+builder.Services
+    .AddIdentityCore<User>(opt =>
+    {
+        opt.Password.RequiredLength = 6;
+        opt.Password.RequireNonAlphanumeric = false;
+        opt.Password.RequireUppercase = false;
+        opt.Password.RequireLowercase = false;
+        opt.Password.RequireDigit = false;
+        opt.User.RequireUniqueEmail = true;
+    })
+    .AddRoles<IdentityRole<int>>()
+    .AddEntityFrameworkStores<DataContext>()
+    .AddSignInManager();
 
 // Services
 builder.Services.AddScoped<ICourierServices, CourierServices>();
@@ -52,7 +67,7 @@ builder.Services.AddSwaggerGen(opt =>
 });
 
 // JWT Auth
-var jwt = builder.Configuration.GetSection("Jwt");
+var jwt = builder.Configuration.GetSection("JWT");
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -70,7 +85,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization(opt =>
-    opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin")));
+{
+    opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+});
 
 builder.Services.AddControllers();
 
@@ -85,4 +102,20 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+// Seed admin user and role
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+        var cfg = services.GetRequiredService<IConfiguration>();
+        await IdentitySeeder.SeedAdminAsync(userManager, roleManager, cfg);
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Error seeding identity data");
+    }
+}
 app.Run();

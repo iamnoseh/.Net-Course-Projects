@@ -4,33 +4,34 @@ using System.Security.Claims;
 using System.Text;
 using Domain.DTOs.Account;
 using Domain.DTOs.UserDtos;
-using Infrastructure.Data;
+using Domain.Entities;
 using Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Infrastructure.Services;
 
-public class AuthService(DataContext context, IConfiguration configuration) : IAuthService
+public class AuthService(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration) : IAuthService
 {
     public async Task<Responce<string>> Login(LoginDto loginDto)
     {
         try
         {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+            var user = await userManager.FindByEmailAsync(loginDto.Email);
             if (user == null)
             {
                 return new Responce<string>(HttpStatusCode.BadRequest, "Your email or password is incorrect");
             }
 
-            var valid = BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password);
-            if (!valid)
+            var result = await signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+            if (!result.Succeeded)
             {
                 return new Responce<string>(HttpStatusCode.Unauthorized, "Your email or password is incorrect");
             }
 
-            var token = GenerateJwtToken(user.Id, user.Name, user.Email, user.Role.ToString());
+            var roles = await userManager.GetRolesAsync(user);
+            var token = GenerateJwtToken(user.Id, user.Name, user.Email!, roles);
             return new Responce<string>(token);
         }
         catch (Exception e)
@@ -43,19 +44,32 @@ public class AuthService(DataContext context, IConfiguration configuration) : IA
     {
         try
         {
-            var exists = await context.Users.AnyAsync(u => u.Email == registerDto.Email);
-            if (exists)
+            var exists = await userManager.FindByEmailAsync(registerDto.Email);
+            if (exists != null)
             {
                 return new Responce<string>(HttpStatusCode.Conflict, "Email already registered");
             }
 
-            var userService = new UserServices(context);
-            var createRes = await userService.CreateUser(registerDto);
-            if (createRes.StatusCode != (int)HttpStatusCode.Created)
+            var user = new User
             {
-                return new Responce<string>((HttpStatusCode)createRes.StatusCode, createRes.Message);
+                UserName = registerDto.Email,
+                Email = registerDto.Email,
+                Name = registerDto.Name,
+                Phone = registerDto.Phone,
+                Address = registerDto.Address,
+                RegistrationDate = registerDto.RegistrationDate == default ? DateTime.UtcNow : registerDto.RegistrationDate,
+                CreateDate = DateTime.UtcNow,
+                UpdateDate = DateTime.UtcNow
+            };
+
+            var createRes = await userManager.CreateAsync(user, registerDto.Password);
+            if (!createRes.Succeeded)
+            {
+                var message = string.Join("; ", createRes.Errors.Select(e => e.Description));
+                return new Responce<string>(HttpStatusCode.BadRequest, message);
             }
-            return new Responce<string>(HttpStatusCode.OK,"User registration successful");
+            
+            return new Responce<string>(HttpStatusCode.OK, "User registration successful");
         }
         catch (Exception e)
         {
@@ -63,7 +77,7 @@ public class AuthService(DataContext context, IConfiguration configuration) : IA
         }
     }
 
-    private string GenerateJwtToken(int userId, string name, string email, string role)
+    private string GenerateJwtToken(int userId, string name, string email, System.Collections.Generic.IList<string> roles)
     {
         var jwtSection = configuration.GetSection("JWT");
         var issuer = jwtSection["Issuer"];
@@ -76,8 +90,11 @@ public class AuthService(DataContext context, IConfiguration configuration) : IA
             new(JwtRegisteredClaimNames.NameId, userId.ToString()),
             new(JwtRegisteredClaimNames.Name, name),
             new(JwtRegisteredClaimNames.Email, email),
-            new("role", role)
         };
+        foreach (var r in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, r));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
