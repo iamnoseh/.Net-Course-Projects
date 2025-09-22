@@ -74,7 +74,7 @@ public class AuthService(UserManager<User> userManager, SignInManager<User> sign
         }
     }
 
-    private string GenerateJwtToken(int userId, string name, string email, System.Collections.Generic.IList<string> roles,string phone)
+    private string GenerateJwtToken(int userId, string name, string email, IList<string> roles,string phone)
     {
         var jwtSection = configuration.GetSection("JWT");
         var issuer = jwtSection["Issuer"];

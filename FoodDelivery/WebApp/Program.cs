@@ -9,6 +9,7 @@ using Serilog;
 using System.Text;
 using Domain.Entities;
 using Infrastructure.Data.Seeder;
+using Infrastructure.Profiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,10 @@ builder.Host.UseSerilog((ctx, lc) => lc
 builder.Services.AddDbContext<DataContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<DataContext>();
+
+builder.Services.AddAutoMapper(typeof(AppProfile));
+
+
 builder.Services
     .AddIdentityCore<User>(opt =>
     {

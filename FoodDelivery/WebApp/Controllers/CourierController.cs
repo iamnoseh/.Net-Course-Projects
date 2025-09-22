@@ -11,7 +11,7 @@ namespace WebApp.Controllers;
 public class CourierController(ICourierServices services):Controller
 {
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    // [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateCourier(CreateCourierDto dto)
     {
         var res = await services.AddCourier(dto);
@@ -29,7 +29,7 @@ public class CourierController(ICourierServices services):Controller
     }
 
     [HttpDelete]
-    [Authorize(Roles = "Admin")]
+    // [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCourier(int id)
     {
         var res = await services.DeleteCourier(id);
@@ -37,7 +37,7 @@ public class CourierController(ICourierServices services):Controller
     }
 
     [HttpGet]
-    [Authorize]
+    // [Authorize]
     public async Task<IActionResult> GetCouriers()
     {
         var res = await services.ListCouriers();
@@ -45,7 +45,7 @@ public class CourierController(ICourierServices services):Controller
     }
 
     [HttpGet("{id}")]
-    [Authorize]
+    // [Authorize]
     public async Task<IActionResult> GetCourier(int id)
     {
         var res = await services.FindCourier(id);
