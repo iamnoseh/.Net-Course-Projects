@@ -14,7 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DataContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<DataContext>();
-
+builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
