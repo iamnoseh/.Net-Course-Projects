@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace Domain.Dtos.Book;
+﻿namespace Domain.Dtos.Book;
 
 public class UpdateBookDto
 {

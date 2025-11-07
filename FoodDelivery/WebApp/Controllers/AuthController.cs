@@ -11,7 +11,7 @@ namespace WebApp.Controllers;
 public class AuthController(IAuthService authService) : Controller
 {
     [HttpPost("login")]
-    [AllowAnonymous]
+    [Authorize("Mentor,Admin")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
         var res = await authService.Login(dto);

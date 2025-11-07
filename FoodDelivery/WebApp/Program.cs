@@ -1,12 +1,5 @@
-using Infrastructure.Data;
-using Infrastructure.Interfaces;
-using Infrastructure.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using System.Text;
 using Domain.Entities;
 using Infrastructure.Data.Seeder;
 using Infrastructure.ExtensionMethods;

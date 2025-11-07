@@ -9,60 +9,65 @@ using Domain.Entities;
 public class ProductRepository(DataContext db, IMemoryCache cache) : IProductRepository
 {
     private readonly string key = "Product";
-    public async Task<Product> AddAsync(Product product)
+
+    public async Task<int> AddAsync(Product product)
     {
-        db.Products.Add(product);
+        await db.Products.AddAsync(product);
         var res = await db.SaveChangesAsync();
         if (res > 0)
         {
             cache.Remove(key);
+            var pr = await db.Products.ToListAsync();
+            cache.Set(key, pr, TimeSpan.FromDays(20));
         }
-        return product;
+        return res;
     }
-
-
-    public async Task DeleteAsync(Product product)
-    {
-        db.Products.Remove(product);
-        var res = await db.SaveChangesAsync();
-        if (res > 0)
-        {
-            cache.Remove(key);
-        }
-    }
-
-
-    public async Task<IEnumerable<Product>> GetAllAsync()
-    {
-        if (!cache.TryGetValue(key, out List<Product>? products))
-        {
-            var res = await db.Products.ToListAsync();
-            cache.Set(key, res, TimeSpan.FromDays(1));
-            return res;
-        }
-        return products!;
-    }
-
 
     public async Task<Product?> GetByIdAsync(Guid id)
     {
-        if (!cache.TryGetValue(key, out Product? product))
+        if (!cache.TryGetValue(key, out List<Product> products))
         {
             var res = await db.Products.FindAsync(id);
-            cache.Set(key, res, TimeSpan.FromDays(1));
             return res;
         }
-        return product;
+        return products.FirstOrDefault(x=> x.Id == id);
     }
 
+    public async Task<List<Product>> GetAllAsync()
+    {
+        if (!cache.TryGetValue(key, out List<Product> products))
+        {
+            var res =  await db.Products.ToListAsync();
+            cache.Set(key, res, TimeSpan.FromDays(20));
+            return res;
+        }
+        return products;
+    }
 
-    public async Task UpdateAsync(Product product)
+    public async Task<int> UpdateAsync(Product product)
     {
         db.Products.Update(product);
         var res = await db.SaveChangesAsync();
         if (res > 0)
         {
             cache.Remove(key);
+            var pr =  await db.Products.ToListAsync();
+            cache.Set(key, pr, TimeSpan.FromDays(20));
         }
+        return res;
+    }
+
+    public async Task<int> DeleteAsync(Product product)
+    {
+        var product1 = await db.Products.FindAsync(product.Id);
+        db.Products.Remove(product1);
+        var res = await db.SaveChangesAsync();
+        if (res > 0)
+        {
+            cache.Remove(key);
+            var pr =  await db.Products.ToListAsync();
+            cache.Set(key, pr, TimeSpan.FromDays(20));
+        }
+        return res;
     }
 }

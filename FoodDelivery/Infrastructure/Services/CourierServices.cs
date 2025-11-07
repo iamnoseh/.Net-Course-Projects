@@ -5,17 +5,23 @@ using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 namespace Infrastructure.Services;
-public class CourierServices(DataContext context,IMapper mapper) : ICourierServices
+public class CourierServices(DataContext context,IMapper mapper,ILogger<CourierServices> logger) : ICourierServices
 {
     public async Task<Responce<string>> AddCourier(CreateCourierDto courier)
     {
+        logger.LogInformation("Creating a new courier");
          var map = mapper.Map<Courier>(courier);
          await context.AddAsync(map);
-         var res = await context.SaveChangesAsync();
-         return res > 0
-             ? new Responce<string>(HttpStatusCode.Created,"Courier created successfully")
-             : new Responce<string>(HttpStatusCode.BadRequest,"Something went wrong");
+        var res = await context.SaveChangesAsync();
+        if (res > 0)
+            logger.LogInformation("Courier created successfully");
+        else
+            logger.LogWarning("Something went wrong");
+        return res > 0
+            ? new Responce<string>(HttpStatusCode.Created,"Courier created successfully")
+            : new Responce<string>(HttpStatusCode.BadRequest,"Something went wrong");
     }
 
     public async Task<Responce<string>> UpdateCourier(UpdateCourierDto courier)

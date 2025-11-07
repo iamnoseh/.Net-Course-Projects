@@ -16,6 +16,6 @@ public static class ServicesRegister
         services.AddScoped<IOrderDetailServices, OrderDetailServices>();
         services.AddScoped<IRestourantServices, ResturantServices>();
         services.AddScoped<IUserServices, UserServices>();
-        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthService, AuthService>(); 
     }
 }

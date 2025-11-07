@@ -1,9 +1,9 @@
 using Infrastructure.Data;
-using Infrastructure.Repositories.Book;
-using Infrastructure.Services.Book;
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
 using Infrastructure.Profiles;
+using Infrastructure.Repositories.Book;
+using Infrastructure.Services.BookServices;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,21 +16,26 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddAutoMapper(typeof(AppProfile));
 
-// Add Memory Cache
-builder.Services.AddMemoryCache();
+
 
 
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBookService, BookService>();
-
+builder.Host.UseSerilog();
 var app = builder.Build();
+Log.Logger =  new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+ 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
